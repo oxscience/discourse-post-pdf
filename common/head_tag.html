@@ -5,26 +5,37 @@
   // Print icon SVG (simple, no FontAwesome dependency)
   const PRINT_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
 
+  function cleanCooked(html, title) {
+    // Remove duplicate H1 matching the topic title
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    var h1 = tmp.querySelector("h1");
+    if (h1 && h1.textContent.trim().toLowerCase() === title.toLowerCase()) h1.remove();
+    // Remove Discourse emoji images
+    tmp.querySelectorAll('img.emoji, img[src*="emoji"]').forEach(function(el) { el.remove(); });
+    return tmp.innerHTML;
+  }
+
   function openPrintView(postEl) {
     var title = (document.querySelector(".fancy-title") || {}).innerText || "Beitrag";
     var cookedEl = postEl.querySelector(".cooked");
     if (!cookedEl) return;
-    var cooked = cookedEl.innerHTML;
+    var cooked = cleanCooked(cookedEl.innerHTML, title);
 
-    var nameEl = postEl.querySelector(".first-post .creator a, .names .first a, .full-name a, .username a");
-    var author = nameEl ? nameEl.innerText : "Unbekannt";
-    var timeEl = postEl.querySelector("time");
-    var rawDate = timeEl ? (timeEl.getAttribute("datetime") || timeEl.innerText) : "";
+    var nameEl = postEl.querySelector(".names .first a, .full-name a, .username a, .creator a");
+    var author = nameEl ? nameEl.innerText.trim() : "Unbekannt";
+    var timeEl = postEl.querySelector(".post-date time, time[datetime]");
+    var rawDate = timeEl ? timeEl.getAttribute("datetime") : "";
     var date = rawDate ? new Date(rawDate).toLocaleDateString("de-DE", {year:"numeric",month:"2-digit",day:"2-digit"}) : "";
     var url = window.location.href.split("?")[0].split("#")[0];
 
     var html = '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>' + title + '</title>'
       + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
       + '<style>'
-      + '@page{size:A4;margin:22mm 24mm 22mm 24mm}'
+      + '@page{size:A4;margin:16mm 24mm 24mm 24mm}'
       + '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
       + '*{box-sizing:border-box;margin:0;padding:0}'
-      + 'body{font-family:"Noto Sans",sans-serif;color:#222;font-size:9.5pt;line-height:1.7}'
+      + 'body{font-family:"Noto Sans",sans-serif;color:#222;font-size:9.5pt;line-height:1.7;padding-bottom:12mm}'
       + '.header{padding-bottom:6mm;margin-bottom:6mm;border-bottom:.5pt solid #ddd}'
       + '.header img{width:22px;height:22px;margin-bottom:6mm}'
       + '.header h1{font-size:20pt;font-weight:700;color:#111;line-height:1.15;margin-bottom:3mm}'
