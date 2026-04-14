@@ -70,20 +70,26 @@
   function injectButtons() {
     document.querySelectorAll("article.boxed, article[data-post-id]").forEach(function (article) {
       if (article.querySelector(".ox-print-btn")) return;
-      var menu = article.querySelector(".post-menu-area, .post__menu-area");
-      if (!menu) return;
+      var actions = article.querySelector(".post-controls .actions");
+      if (!actions) return;
       var btn = document.createElement("button");
-      btn.className = "btn no-text btn-icon ox-print-btn btn-flat";
+      btn.className = "btn no-text btn-icon post-action-menu__print ox-print-btn btn-flat";
       btn.title = "Als PDF drucken";
       btn.setAttribute("aria-label", "Als PDF drucken");
       btn.innerHTML = PRINT_SVG;
-      btn.style.cssText = "opacity:0.6;order:99;";
       btn.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
         openPrintView(article);
       });
-      menu.appendChild(btn);
+      var showMore = actions.querySelector(".show-more-actions, .post-action-menu__show-more");
+      if (showMore) {
+        actions.insertBefore(btn, showMore);
+      } else {
+        var reply = actions.querySelector(".post-action-menu__reply");
+        if (reply) actions.insertBefore(btn, reply);
+        else actions.appendChild(btn);
+      }
     });
   }
 
